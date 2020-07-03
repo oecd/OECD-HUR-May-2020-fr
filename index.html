@@ -1,0 +1,357 @@
+<doctype HTML>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+
+    <head>
+
+        <link
+            href="https://fonts.googleapis.com/css?family=Noto+Sans:400,400i,700,700i|Oswald:200,300,400,500,600,700&display=swap&subset=latin-ext"
+            rel="stylesheet">
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="css/site.css">
+        <script src="https://code.jquery.com/jquery-3.5.0.js"
+            integrity="sha256-r/AaFHrszJtwpe+tHyNi/XCfMxYpbsRg2Uqn0x3s2zc=" crossorigin="anonymous"></script>
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+        <script src="libs/d3.v4.min.js"></script>
+        <script src="libs/d3.v4.jetpack.min.js"></script>
+        <script src="libs/d3-scale-chromatic.v1.min.js"></script>
+        <script src="libs/topojson.v1.min.js"></script>
+        <script src="libs/d3-queue.v3.min.js"></script>
+        <link rel="icon" href="img/favicon.ico">
+        <script>
+
+            dataLayer = [{
+
+                "siteName": "gitvfd.github.io/OECD_HUR_Apr-2020",
+
+                "siteEnvironment": "live",
+
+                "pageLanguage": "en",         // or "en" or "es"
+
+                "contentLanguage": "English",  // or "English" or "French"
+
+                "pageTopic": "Unemployment",
+
+                "pageSubTopic": "",
+
+                "pageCountry": "",
+
+                "pageCategory": ""
+
+            }];
+
+        </script>
+        
+        
+        
+        <!-- Google Tag Manager -->
+        
+        <script>(function (w, d, s, l, i) {
+                w[l] = w[l] || []; w[l].push({
+                    'gtm.start':
+
+                        new Date().getTime(), event: 'gtm.js'
+                }); var f = d.getElementsByTagName(s)[0],
+
+                    j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+
+                        'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+
+            })(window, document, 'script', 'dataLayer', 'GTM-P5JSM4P');</script>
+        
+        <!--End Google Tag Manager -->
+        </head>
+        <body>
+        
+            <!-- Google Tag Manager (noscript) -->
+        
+            <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P5JSM4P" height="0" width="0"
+                    style="display:none;visibility:hidden"></iframe></noscript>
+        
+            <!--End Google Tag Manager (noscript) -->
+        
+
+            <!--</div>-->
+        
+        <h1>Un chômage plus élevé chez les jeunes et les femmes</h1>
+        <h2>Taux de chômage en % de la population active</h2>
+        <br>
+        <div id="modedemploi">
+           <div id="#intromodedemploi">Sélectionnez un pays :    </div>
+           <div id="selCountry">
+                <select id="country_dropdown" onchange="updatechart(value)">
+                    <option value="OECD" selected="selected">OCDE</option>
+                </select>
+            </div>
+        </div><br>
+<div id="chart"></div>
+        <!--<div class="flex-container" id="switchtracker">
+            <div id="trackersNotes">
+                <div id="source">Download underlying data</div>
+                <div id="copyright">© 2020 Organisation for Economic Co-operation and Development</div>
+            </div>
+    
+        </div>-->
+
+        </body>
+<script>
+
+    $(document).ready(function () {
+        $('#country_dropdown').select2({ width: '180px' });
+    });
+    
+
+
+    var label = [{ "code": "LRHUTTTT", "label": "Total" },{ "code": "LRHU24TT", "label": "Les jeunes" }, { "code": "LRHUADTT", "label": "25 ans et +"}, { "code": "LRHUTTMA", "label": "Hommes" },{"code":"LRHUTTFE","label":"Femmes"}]
+    var timeLabel= ["février 2020", "mai 2020"]
+    var nested ;
+
+    var ISOmemory;
+
+
+    var margin = { top: 20, right: 30, bottom: 30, left: 50 },
+        width = document.getElementById("chart").offsetWidth - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+
+    var divMap = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+    d3.xml("https://stats.oecd.org/restsdmx/sdmx.ashx/GetData/STLABOUR/AUS+AUT+BEL+CAN+CHL+COL+CZE+DNK+EST+FIN+FRA+DEU+GRC+HUN+ISL+IRL+ISR+ITA+JPN+KOR+LVA+LTU+LUX+MEX+NLD+NZL+NOR+POL+PRT+SVK+SVN+ESP+SWE+CHE+TUR+GBR+USA+OECD+G-7+EA19+BRA+IDN+RUS+ZAF.LRHU24TT+LRHUADTT+LRHUTTFE+LRHUTTMA+LRHUTTTT.STSA.M/all?startTime=2020-02&endTime=2020-05", function (data) {
+ 
+            data = [].map.call(data.documentElement.getElementsByTagName("Series"), function (serie) {
+         
+             if(( serie.getElementsByTagName("Obs")[3]!==undefined ) ){ //Check if latest month is available 0 is first period in queries and then increment from here
+                return {
+                location: serie.getElementsByTagName("SeriesKey")[0].childNodes[0].getAttribute("value"),
+                measure: serie.getElementsByTagName("SeriesKey")[0].childNodes[1].getAttribute("value"),
+                value:[ {time:serie.getElementsByTagName("Obs")[0].childNodes[0].childNodes[0].nodeValue, //change array value after ("Obs) to get the month you're interested into as first value
+                value: +serie.getElementsByTagName("Obs")[0].childNodes[1].getAttribute("value")//change array value after ("Obs) to get the month you're interested into as first value
+                }, {
+                    time: serie.getElementsByTagName("Obs")[3].childNodes[0].childNodes[0].nodeValue,//change array value after ("Obs) to get the month you're interested into as 2nd value
+                    value: +serie.getElementsByTagName("Obs")[3].childNodes[1].getAttribute("value")//change array value after ("Obs) to get the month you're interested into as 2nd value
+                    }]
+                };
+            }else return {};
+            });
+            console.log(data)         
+            nested = d3.nest()
+                .key(k => k.location).sortKeys(d3.ascending)
+                .entries(data);
+
+            var temp=[];
+
+            d3.tsv("data/coord_country.tsv", function (couTemp) {
+                    var count=0;
+                nested.forEach(function (d) {
+                    couTemp.forEach(function (k) { 
+                        if (k.ISO3 == d.key){ 
+                            temp.push({"Country":k.Country,"ISO3":d.key}) ; 
+                            
+                        } 
+                    })
+                    count++;
+                    if  (count==nested.length)
+                    updateDropdown()
+                })
+                
+            })    
+        function updateDropdown(){
+            document.getElementById("country_dropdown").innerHTML = "<option value=\"OECD\" selected=\"selected\">OCDE</option>";
+            
+            temp.sort((a, b) => a.Country.localeCompare(b.Country)).forEach(function (k) {
+                nested.forEach(function (d) {
+            
+                    if(k.ISO3==d.key){
+                        var x = document.getElementById("country_dropdown");
+                        if (d.key != "undefined" && d.key != "OECD") {
+                            var option = document.createElement("option");
+                            option.value = d.key;
+                            option.innerHTML = k.Country;
+                            x.appendChild(option);
+
+                        }
+                    }
+                         
+                })
+            })
+    
+        }
+
+        updatechart("OECD") 
+
+    })
+
+
+
+        function updatechart(ISO3) {
+
+            width = document.getElementById("chart").offsetWidth - margin.left - margin.right,
+            ISOmemory=ISO3;
+            d3.select("#chart").selectAll("*").remove()
+            
+            var y = d3.scaleLinear()
+                .range([height, 0]);
+            
+            var x0 = d3.scaleBand()
+                .domain(["Les jeunes", "25 ans et +","", "Femmes", "Hommes", " ", "Total" ])
+                .range([0, width]);
+
+            var x1 = d3.scaleBand().domain(timeLabel)
+                .range([0, x0.bandwidth() - 10]);
+
+            var z = d3.scaleOrdinal()
+                .range(["#0090ff", "#0b0064"]);
+
+            var svg = d3.select("#chart").append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+            var data= d3.nest()
+                .key(k => k.measure)
+                .entries(nested.filter(function (d) { return d.key == ISO3; })[0]["values"]);
+
+            var max=0;
+            data.forEach(function(k){
+                if(k.values[0].value[0].value>max)
+                    max= k.values[0].value[0].value
+                
+                if(k.values[0].value[1].value > max)
+                    max = k.values[0].value[1].value
+
+            })
+            
+            y.domain([ 0,1.2*max])
+           
+
+            var chartData= [];
+            data.forEach(function(k){
+                var XLabel;
+             
+                if(k.values[0].measure=="LRHUTTTT")
+                    XLabel= "Total"
+                
+                if (k.values[0].measure == "LRHU24TT")
+                    XLabel = "Les jeunes"
+                
+                if (k.values[0].measure == "LRHUADTT")
+                    XLabel = "25 ans et +"
+                
+                if (k.values[0].measure == "LRHUTTMA")
+                    XLabel = "Hommes"
+                
+                if (k.values[0].measure == "LRHUTTFE")
+                    XLabel = "Femmes"
+
+                chartData.push({"measure": XLabel,"février 2020": k.values[0].value[0].value,"mai 2020": k.values[0].value[1].value})
+            })
+
+            
+
+            svg.append("g")
+                .selectAll("g")
+                .data(chartData)
+                .enter().append("g")
+                .style("opacity", function (d) {
+                    
+                    if(d["measure"]== "Les jeunes" || d["measure"] == "Femmes")
+                        return "1";
+                    else
+                        return "0.6";
+                })
+             .attr("transform", function (d, i) { return "translate(" + x0(d["measure"]) + ",0)"; })
+                 //  .attr("transform", d => 'translate(${x0(d["measure"])},0)')
+                .selectAll("rect")
+                .data(d => timeLabel.map(key => ({ key, value: d[key] })))
+                .enter().append("rect")
+                .attr("x", d => x1(d.key))
+                //.attr("y",function (d) { console.log(d); return y(d.value) })
+                .attr("y", d => y(d.value))
+                .attr("width", x1.bandwidth())
+                .attr("height", d => y(0) - y(d.value))
+                .attr("fill", d => z(d.key))
+                .on('mouseover', function (d) {
+                    d3.select(this).attr("opacity", 0.5)
+
+                    divMap.transition()
+                        .duration(250)
+                        .style("opacity", 1);
+
+                        var htmlText = "date: <b>" + d.key + "</b><br><b>" + d3.format(".2f")(d.value) + "%</b>";
+                    divMap.html(htmlText)
+                        .style("left", event.pageX - document.body.scrollLeft + "px")
+                        .style("top", event.pageY - document.body.scrollTop + "px");
+
+                })
+
+                .on("mousemove", function (d) {
+
+                    divMap
+                        .style("left", event.pageX - document.body.scrollLeft + 10 + "px")
+                        .style("top", event.pageY - document.body.scrollTop + "px");
+
+                })
+                .on('mouseout', function (d) {
+
+                    d3.select(this).attr("opacity", 1)
+
+                    divMap.transition()
+                        .duration(100)
+                        .style("opacity", 0);
+                });
+
+
+            svg
+                .append("g")
+                .attr("class", "axisContext")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x0).ticks(8));
+
+            svg.append("g")
+                .attr("class", "axisContext")
+                .call(d3.axisLeft(y).tickFormat(d => d + "%").tickSize(-(width)));
+
+               
+
+            var n=35
+            svg
+                .append("rect")
+                .attr("x", 2*n)
+                .attr("width", n)
+                .attr("height", n)
+                .attr("fill", z(timeLabel[0]));
+
+
+            svg
+                .append("rect")
+                .attr("x", 7.5*n)
+                .attr("width", n)
+                .attr("height", n)
+                .attr("fill", z(timeLabel[1]));
+           
+                svg.append("text")
+                .attr("class", "legendtext")
+                .attr("x", 3.25*n)
+                .attr("y", n/2)
+                .attr("dy", "0.35em")
+                .text(timeLabel[0]);
+
+            svg.append("text")
+                .attr("class", "legendtext")
+                .attr("x", 8.75 * n)
+                .attr("y", n/2)
+                .attr("dy", "0.35em")
+                .text(timeLabel[1]);
+        
+
+        }
+
+    $(window).on('resize', function () {updatechart(ISOmemory); });
+
+</script>
