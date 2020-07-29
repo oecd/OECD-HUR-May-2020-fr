@@ -319,7 +319,13 @@
 
                
 
-            var n=35
+            
+           var n;    
+            if (width<500)
+                n=20
+            else 
+                n=35
+            
             svg
                 .append("rect")
                 .attr("x", 2*n)
