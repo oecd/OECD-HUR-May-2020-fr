@@ -28,9 +28,9 @@ h2{
       -webkit-border-radius: 2px;
       -moz-border-radius: 2px;
       border-radius: 2px;
-      /*-webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+      -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
       -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
-      box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);*/
+      box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
       /*pointer-events: none;*/  
       font-family: 'Oswald', sans-serif;
       font-size: 1.75rem;
@@ -161,14 +161,14 @@ display: flex;
 .axisContext text{
   font-family: 'Noto Sans', sans-serif;
   font-weight: 300;
-  font-size: 1.8rem;
+  font-size: 1.45rem;
   color:#575757;
   stroke:none
 }
 .legendtext{
   font-family: 'Noto Sans', sans-serif;
   font-weight: 300;
-  font-size: 2rem;
+  font-size: 1.2rem;
   color:#575757;
   stroke:none
 }
@@ -201,7 +201,6 @@ div.tooltip {
     z-index:2;
 }
 
-
 @media only screen and (max-width: 850px) {
 
 
@@ -215,7 +214,7 @@ div.tooltip {
 
 
 .legendtext{
-  font-size: 1.75rem;
+  font-size: 1.2rem;
 }
 
 }
@@ -226,13 +225,31 @@ div.tooltip {
 .axisContext text{
   font-family: 'Noto Sans', sans-serif;
   font-weight: 300;
-  font-size: 1.0rem;
+  font-size: 0.9rem;
   color:#575757;
   stroke:none
 }
 
 .legendtext{
-  font-size: 1.5rem;
+  font-size: 1.1rem;
+}
+  
+}
+
+
+@media only screen and (max-width: 400px) {
+
+
+.axisContext text{
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 300;
+  font-size: 0.65rem;
+  color:#575757;
+  stroke:none
+}
+
+.legendtext{
+  font-size: 0.9rem;
 }
   
 }
